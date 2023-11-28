@@ -1,0 +1,240 @@
+openapi: 3.0.0
+info:
+  title: Upsert Customer API
+  version: 1.0.0
+servers:
+- url: /
+paths:
+  /customer:
+    post:
+      summary: Upsert a customer
+      description: Insert or update customer information.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Party'
+        required: true
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requestId:
+                    type: string
+                    description: "The ID of the request, for tracking the processing\
+                      \ status."
+                    example: req-12345
+                  acceptedTimestamp:
+                    type: string
+                    description: The timestamp when the request was accepted.
+                    format: date-time
+                    example: 2023-10-27T14:15:22Z
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  schemas:
+    Party:
+      required:
+      - addresses
+      - contact
+      - customerCode
+      type: object
+      properties:
+        customerCode:
+          type: string
+        crmCustomerCode:
+          type: string
+        additionalPartyIdentification:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdditionalPartyIdentification'
+        addresses:
+          type: array
+          items:
+            allOf:
+            - $ref: '#/components/schemas/Address'
+            - $ref: '#/components/schemas/InstallationAddress'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        organisationDetails:
+          $ref: '#/components/schemas/OrganisationDetails'
+        financialInstitutionInformation:
+          type: array
+          items:
+            $ref: '#/components/schemas/FinancialInstitutionInformation'
+    AdditionalPartyIdentification:
+      type: object
+      properties:
+        additionalPartyIdentificationTypeCode:
+          type: string
+        value:
+          type: string
+    InstallationAddress:
+      type: object
+      properties:
+        floor:
+          type: string
+        reachability:
+          type: string
+    Address:
+      required:
+      - city
+      - countryCode
+      - name
+      - postalCode
+      - streetAddressOne
+      - streetAddressTwo
+      type: object
+      properties:
+        name:
+          type: string
+        city:
+          type: string
+        countryCode:
+          type: object
+          properties:
+            codeList:
+              type: string
+              enum:
+              - ISO-3166-1-alpha-2
+              - ISO-3166-1-alpha-3
+            value:
+              type: string
+        postalCode:
+          type: string
+        streetAddressOne:
+          type: string
+        streetAddressTwo:
+          type: string
+        streetAddressThree:
+          type: string
+        geographicalCoordinates:
+          type: object
+          properties:
+            latitude:
+              type: string
+            longitude:
+              type: string
+    Contact:
+      required:
+      - communicationChannel
+      - contactTypeCode
+      - personName
+      type: object
+      properties:
+        contactTypeCode:
+          type: object
+          properties:
+            codeList:
+              type: string
+              enum:
+              - a
+              - b
+            value:
+              type: string
+        personName:
+          type: string
+        departmentName:
+          type: string
+        jobTitle:
+          type: string
+        communicationChannel:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommunicationChannels'
+        afterHoursCommunicationChannel:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommunicationChannels'
+    CommunicationChannels:
+      type: array
+      items:
+        $ref: '#/components/schemas/CommunicationChannel'
+    CommunicationChannel:
+      required:
+      - codeList
+      - value
+      type: object
+      properties:
+        preferred:
+          type: boolean
+        codeList:
+          type: string
+          example: EMAIL
+          enum:
+          - EMAIL
+          - PHONE
+          - FAX
+          - MOBILE
+          - LINKEDIN
+          - TELEGRAM
+          - WHATSAPP
+          - SIGNAL
+        value:
+          type: string
+    OrganisationDetails:
+      type: object
+      properties:
+        organisationName:
+          type: string
+        officialAddress:
+          $ref: '#/components/schemas/Address'
+        legalRegistration:
+          type: array
+          items:
+            type: object
+            properties:
+              legalRegistrationNumber:
+                type: string
+              legalRegistrationType:
+                type: object
+                properties:
+                  codeList:
+                    type: string
+                    enum:
+                    - COC
+                    - VAT
+                  value:
+                    type: string
+              legalRegistrationAdditionalInformation:
+                type: string
+    FinancialInstitutionInformation:
+      type: object
+      properties:
+        financialInstitutionName:
+          type: string
+        financialInstitutionBranchName:
+          type: string
+        financialAccount:
+          $ref: '#/components/schemas/FinancialAccount'
+    FinancialAccount:
+      type: object
+      properties:
+        financialAccountNumber:
+          type: string
+        financialAccountNumberTypeCode:
+          type: object
+          properties:
+            codeList:
+              type: string
+              enum:
+              - IBAN
+            value:
+              type: string
+              example: NL91ABNA0417164300
